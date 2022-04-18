@@ -1,16 +1,17 @@
 <template>
 	<div class="home">
 		<img alt="Vue logo" src="../assets/logo.png">
-		<HelloWorld :msg="hello_msg"/>
-		<button @click="sign_in">Sign in</button>
-		<button @click="sign_out">Sign out</button>
+		<HelloWorld :msg="helloMsg"/>
+		<pv-button v-if="$store.getters.isLoggedIn" class="p-button-warning" icon="mdi mdi-logout" @click="signOut" label="Sign out"/>
+		<pv-button v-else class="p-button-success" icon="mdi mdi-login" @click="signIn" label="Sign in"/>
+		<pv-button class="p-button-info" icon="mdi mdi-cog" @click="test" label="Test"/>
 	</div>
 </template>
 
 <script>
 // @ is an alias to /src
 import HelloWorld from "@/components/HelloWorld.vue"
-import { sign_in_with_google, sign_out } from "@/auth";
+import { signInWithGoogle, signOut } from "@/auth";
 
 export default {
 	name: "HomeView",
@@ -22,23 +23,28 @@ export default {
 		};
 	},
 	computed: {
-		hello_msg() {
+		helloMsg() {
 			return `Welcome to Your Vue.js App, ${this.$store.state.user.displayName}`;
 		},
 	},
 	methods: {
-		sign_in() {
-			sign_in_with_google().then(() => {
-				this.$store.commit("notify", "signinout", "info", `Successfully signed in as ${this.$store.state.user.email}`);
-				alert(`Successfully signed in as ${this.$store.state.user.email}`);
+		signIn() {
+			signInWithGoogle().then(() => {
+				const msg = `Successfully signed in as ${this.$store.state.user.email}`;
+				this.$toast.add({severity: "success", summary: msg, life: 3000,});
+				// alert(msg);
 				this.$router.push("/about");
 			});
 		},
-		sign_out() {
-			sign_out().then(() => {
-				this.$store.commit("notify", "signinout", "error", "Successfully signed out");
-				alert("Successfully signed out");
+		signOut() {
+			signOut().then(() => {
+				const msg = "Successfully signed out";
+				this.$toast.add({severity: "warn", summary: msg, life: 3000,});
+				// alert(msg);
 			});
+		},
+		test() {
+			this.$toast.add({severity: "success", summary: "Yadda Boo", life: 3000,});
 		},
 	},
 }

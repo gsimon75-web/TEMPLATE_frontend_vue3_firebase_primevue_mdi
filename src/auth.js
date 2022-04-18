@@ -1,12 +1,11 @@
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 
-import { firebaseConfig } from "@/config";
+import { firebaseConfig, backend } from "@/config";
 import { store } from "@/store";
 import { ax } from "@/ax";
-import { backend } from "@/config";
 
-export function init_auth() {
+export function initAuth() {
 	// https://www.freecodecamp.org/news/how-to-add-authentication-to-a-vue-app-using-firebase/
 	// https://blog.logrocket.com/vue-firebase-authentication/
 	firebase.initializeApp(firebaseConfig);
@@ -29,9 +28,9 @@ export function init_auth() {
 	});
 }
 
-export function sign_in_to_backend() {
+export function signInToBackend() {
 	console.log("Signing in to backend");
-	store.commit("set_reauth", true);
+	store.commit("setReauth", true);
 
 	const user = firebase.auth().currentUser;
 	console.log(`firebase user=${JSON.stringify(user)}`);
@@ -40,7 +39,7 @@ export function sign_in_to_backend() {
 	}
 
 	return user.getIdToken(true).then(idToken => {
-		store.commit("store_id_token", idToken, user.providerId);
+		store.commit("storeIdToken", idToken, user.providerId);
 		let data = {
 			uid: user.uid,
 			email: user.email,
@@ -51,25 +50,25 @@ export function sign_in_to_backend() {
 		if (!backend.signInEndpoint) {
 			return data;
 		}
-		return ax.get(backend.signInEndpoint, { headers: { Authorization: "Bearer " + store.state.persist.id_token} })
+		return ax.get(backend.signInEndpoint, { headers: { Authorization: "Bearer " + store.state.persist.idToken} })
 		.then(result => {
 			console.log("Signed in to backend, whoami results: " + JSON.stringify(result.data));
 			return { ...data, ...result.data };
 		});
 	}).then(result_data => {
-		store.commit("set_reauth", false);
-		store.commit("set_current_user", result_data);
+		store.commit("setReauth", false);
+		store.commit("setCurrentUser", result_data);
 	}).catch(err => {
 		console.log("Failed to sign in to backend: " + JSON.stringify(err));
-		store.commit("set_reauth", false);
-		store.commit("store_id_token", null);
-		store.commit("set_current_user", {});
+		store.commit("setReauth", false);
+		store.commit("storeIdToken", null);
+		store.commit("setCurrentUser", {});
 		throw err;
 	});
 }
 
-export function sign_out() {
-	console.log("sign_out()");
+export function signOut() {
+	console.log("signOut()");
 	return (backend.signOutEndpoint
 		? ax.get(backend.signOutEndpoint).then(() => {
 			console.log("Signed out from backend");
@@ -77,15 +76,15 @@ export function sign_out() {
 		: Promise.resolve()
 	)
 	.then(() => {
-		store.commit("set_current_user", null);
-		store.commit("store_id_token", null);
+		store.commit("setCurrentUser", null);
+		store.commit("storeIdToken", null);
 		return firebase.auth().signOut();
 	}).catch(error => {
 		alert(error.message);
 		throw error;
 	});
 }
-export function sign_in_with_google() {
+export function signInWithGoogle() {
 	var provider = new firebase.auth.GoogleAuthProvider();
 	provider.setCustomParameters({
 		access_type: "offline",
@@ -93,13 +92,50 @@ export function sign_in_with_google() {
 	});
 
 	return firebase.auth().signInWithPopup(provider).then(
-		sign_in_to_backend
+		signInToBackend
 	).then(() => {
-		store.commit("set_reauth", true);
+		store.commit("setReauth", true);
 	}).catch(error => {
 		alert(error.message);
 		throw error;
 	});
 }
+
+// Install axios interceptor to re-authenticate in case of 401 or 403 auth failures
+ax.interceptors.response.use(
+	function (response) {
+		return response;
+	},
+	function (error) {
+		// error = {"status":403,"error":{"code":"auth/id-token-expired","message":"Firebase ID token has expired. Get a fresh ID token from your client app and try again. See https://firebase.google.com/docs/auth/admin/verify-id-tokens for details on how to retrieve an ID token."}}
+		// axios intercepted response: {"message":"Request failed with status code 403","name":"Error","stack":"Error: Request failed with status code 403...","config":{"url":"/v0/...","method":"get","headers":{...,"Authorization":"Bearer eyJ..."}, ...,"timeout":0,"withCredentials":true,"xsrfCookieName":"XSRF-TOKEN","xsrfHeaderName":"X-XSRF-TOKEN",...}}
+		// axios intercepted, error.response: {"data":"","status":403,"statusText":"Firebase ID token has expired...","headers":{...},"config":{"url":"v0/whoami","method":"get","headers":{...,"Authorization":"Bearer eyJh...d6g"},"baseURL":"https://....com",...,"timeout":0,"withCredentials":true,...},"request":{}}
+		//console.log("own props of error: " + JSON.stringify(Object.getOwnPropertyNames(error))); // own props of error: ["stack","message","config","request","response","isAxiosError","toJSON"]
+
+		console.log(`axios intercepted, status=${error.response.status}, reauthInProgress=${store.state.reauthInProgress}`);
+
+		if ((error.response.status == 401) && !store.state.reauthInProgress) {
+			console.log(`error.response: ${JSON.stringify(error.response)}`);
+			console.log("Getting a new cookie and retrying");
+			return signInToBackend().then(() => {
+				// the sign-in itself has already been processed, otherwise retry it
+				return (error.config.url == backend.signInEndpoint) ? Promise.resolve() : ax.request(error.config);
+			});
+		}
+
+		if ((error.response.status == 403) && error.response.statusText.includes("(auth/id-token-expired)") && !store.state.reauthInProgress) {
+			console.log("error.response: " + JSON.stringify(error.response));
+			console.log(`Getting a new id token and retrying, providerId='${store.state.persist.providerId}'`);
+			//if (store.state.persist.providerId == "google.com") {
+			//}
+			return signInWithGoogle().then(() => {
+				// the sign-in itself has already been processed, otherwise retry it
+				return (error.config.url == backend.signInEndpoint) ? Promise.resolve() : ax.request(error.config);
+			});
+		}
+
+		return Promise.reject(error.response)
+	}
+);
 
 // vim: set sw=4 ts=4 noet list:
