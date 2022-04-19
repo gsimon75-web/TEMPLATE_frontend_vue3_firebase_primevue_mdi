@@ -1,21 +1,46 @@
 <template>
-	<pv-toast position="top-right"/>
+<div :style="cssVars">
+
+	<Toast position="top-right"/>
 	<nav>
 		<router-link to="/">Home</router-link> |
 		<router-link to="/about">About</router-link>
 	</nav>
 	<router-view/>
-	<!--v-overlay :value="Object.keys($store.state.notifications).length > 0" class="alerts">
-		<v-alert class="ma-2" border="left" dismissible
-			v-for="(a, id) in $store.state.notifications" :key="id"
-			:type="a.type" @input="v => v || $store.commit('notify', id)" z-index="9999"
-		>
-			{{ a.message }}
-		</v-alert>
-	</v-overlay-->
+
+</div>
 </template>
 
+<script>
+
+export default {
+	name: "App",
+	components: {
+	},
+	data() {
+		return {
+		};
+	},
+	computed: {
+		cssVars: function () {
+			// https://www.telerik.com/blogs/passing-variables-to-css-on-a-vue-component
+			return {
+				"--some-other-var": "42,
+			};
+		},
+	},
+	mounted() {
+		this.$store.commit("setToastService", this.$toast);
+		this.$store.commit("setInfo", "Welcome");
+	},
+};
+</script>
+
 <style>
+:root {
+	--some-variable: 3.5rem;
+}
+
 #app {
 	font-family: Avenir, Helvetica, Arial, sans-serif;
 	-webkit-font-smoothing: antialiased;
@@ -36,6 +61,7 @@ nav a {
 nav a.router-link-exact-active {
 	color: #42b983;
 }
+
 </style>
 
 <!--style lang="scss" scoped>

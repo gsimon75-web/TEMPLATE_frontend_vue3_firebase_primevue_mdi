@@ -1,5 +1,5 @@
 // TODO: Add SDKs for Firebase products that you want to use: https://firebase.google.com/docs/web/setup#available-libraries
-export const firebaseConfig = {
+const firebaseConfig = {
 	apiKey: "your-firebase-api-Key",
 	authDomain: "your-firebase-auth-domain",
 	projectId: "your-firebase-id",
@@ -8,13 +8,13 @@ export const firebaseConfig = {
 	appId: "your-firebase-app-id"
 };
 
-export const backend = {
+const backend = {
 	baseURL:"https://your.domain.com",
 	signInEndpoint: "v0/whoami",
 	signOutEndpoint: "v0/logout",
 };
 
-export default {
+module.exports = {
 	firebaseConfig,
 	backend,
 };

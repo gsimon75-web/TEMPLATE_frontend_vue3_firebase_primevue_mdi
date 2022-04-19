@@ -39,6 +39,7 @@ export const store = new Vuex.Store({
 		now: 0, // current time in Unix systime, updated periodically
 		today: 0, // current day start in Unix systime, updated periodically
 		user: {},
+		$toast: null,
 	},
 	getters: {
 		isLoggedIn(state) {
@@ -46,6 +47,9 @@ export const store = new Vuex.Store({
 		},
 	},
 	mutations: {
+		setToastService(state, t) {
+			state.$toast = t;
+		},
 		updateNow(state) {
 			const now = Math.trunc(new Date().getTime() / 1000);
 			state.now = now;
@@ -60,10 +64,12 @@ export const store = new Vuex.Store({
 				console.log("Clearing stored user");
 				state.user = {};
 			}
-
 		},
 		setReauth(state, value) {
 			state.reauthInProgress = value;
+		},
+		setInfo(state, s) {
+			state.appBarInfo = s;
 		},
 	},
 	actions: {

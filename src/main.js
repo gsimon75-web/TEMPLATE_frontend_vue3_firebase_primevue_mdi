@@ -1,15 +1,14 @@
 import { createApp } from "vue"
 
 import PrimeVue from "primevue/config";
-import ToastService from "primevue/toastservice";
-import Toast from "primevue/toast";
-import Button from "primevue/button";
-import Message from "primevue/message";
-
 import "primevue/resources/themes/saga-blue/theme.css";
 import "primevue/resources/primevue.min.css";
-
 import "primeicons/primeicons.css";
+
+import Button from "primevue/button";
+import Message from "primevue/message";
+import Toast from "primevue/toast";
+import ToastService from "primevue/toastservice";
 
 import "@mdi/font/scss/materialdesignicons.scss";
 import "@mdi/font/fonts/materialdesignicons-webfont.ttf";
@@ -30,9 +29,9 @@ initAuth().then(signInToBackend).catch(error => {
 	app.use(ToastService);
 
 	app.use(PrimeVue);
-	app.component("pv-toast", Toast);
-	app.component("pv-button", Button);
-	app.component("pv-message", Message);
+	app.component("Button", Button);
+	app.component("Message", Message);
+	app.component("Toast", Toast);
 
 	app.use(store);
 	app.use(router);

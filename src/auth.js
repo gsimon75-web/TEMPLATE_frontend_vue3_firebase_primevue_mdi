@@ -9,9 +9,9 @@ export function initAuth() {
 	// https://www.freecodecamp.org/news/how-to-add-authentication-to-a-vue-app-using-firebase/
 	// https://blog.logrocket.com/vue-firebase-authentication/
 	firebase.initializeApp(firebaseConfig);
-	const fb_auth = firebase.auth();
-	fb_auth.useDeviceLanguage();
-	return fb_auth.setPersistence("local").then(() => {
+	const fbAuth = firebase.auth();
+	fbAuth.useDeviceLanguage();
+	return fbAuth.setPersistence("local").then(() => {
 		// Yes, this is the official way to wait for the plugin to initialize: https://groups.google.com/g/firebase-talk/c/836OyVNd_Yg/m/fCeSAXkcBQAJ
 		return new Promise((resolve, reject) => {
 			var unsubscribe = firebase.auth().onAuthStateChanged(
@@ -55,9 +55,9 @@ export function signInToBackend() {
 			console.log("Signed in to backend, whoami results: " + JSON.stringify(result.data));
 			return { ...data, ...result.data };
 		});
-	}).then(result_data => {
+	}).then(resultData => {
 		store.commit("setReauth", false);
-		store.commit("setCurrentUser", result_data);
+		store.commit("setCurrentUser", resultData);
 	}).catch(err => {
 		console.log("Failed to sign in to backend: " + JSON.stringify(err));
 		store.commit("setReauth", false);
