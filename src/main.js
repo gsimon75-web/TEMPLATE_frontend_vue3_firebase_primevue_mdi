@@ -3,10 +3,14 @@ import { createApp } from "vue"
 import PrimeVue from "primevue/config";
 import "primevue/resources/themes/saga-blue/theme.css";
 import "primevue/resources/primevue.min.css";
+import "primeflex/primeflex.min.css";
 import "primeicons/primeicons.css";
 
+import Avatar from "primevue/avatar";
 import Button from "primevue/button";
+import Menu from "primevue/menu";
 import Message from "primevue/message";
+import Sidebar from "primevue/sidebar";
 import Toast from "primevue/toast";
 import ToastService from "primevue/toastservice";
 
@@ -29,8 +33,11 @@ initAuth().then(signInToBackend).catch(error => {
 	app.use(ToastService);
 
 	app.use(PrimeVue);
+	app.component("Avatar", Avatar);
 	app.component("Button", Button);
+	app.component("Menu", Menu);
 	app.component("Message", Message);
+	app.component("Sidebar", Sidebar);
 	app.component("Toast", Toast);
 
 	app.use(store);

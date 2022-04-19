@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
-import HomeView from "../views/HomeView.vue";
+import About from "@/views/About.vue";
+import PageOne from "@/views/PageOne.vue";
 import { store } from "@/store";
 
 
@@ -14,16 +15,13 @@ function checkIfLoggedIn() {
 export const routes = [
 	{
 		path: "/",
-		name: "home",
-		component: HomeView,
+		name: "about",
+		component: About,
 	},
 	{
-		path: "/about",
-		name: "about",
-		// route level code-splitting
-		// this generates a separate chunk (about.[hash].js) for this route
-		// which is lazy-loaded when the route is visited.
-		component: () => import(/* webpackChunkName: "about" */ "../views/AboutView.vue"),
+		path: "/page-one",
+		name: "page-one",
+		component: PageOne,
 		beforeEnter: checkIfLoggedIn,
 	},
 ];
